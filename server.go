@@ -92,6 +92,24 @@ func main() {
 		sendJSON(expDoc, w)
 	})
 
+	r.HandleFunc("/expenses/{id}", nil).Methods("DELETE").HandlerFunc(func(w http.ResponseWriter, r * http.Request) {
+		idExp := mux.Vars(r)["id"]
+		if !bson.IsObjectIdHex(idExp) {
+			checkErr(errors.New("invalid id"), http.StatusBadRequest, w)
+			return
+		}
+
+		err := expense.RemoveById(idExp);
+		if err == mgo.ErrNotFound {
+			checkErr(errors.New("not found"), http.StatusNotFound, w)
+			return
+		}
+		if checkErr(err, http.StatusBadRequest, w) {
+			return ;
+		}
+		sendJSON(nil, w)
+	})
+
 
 	server := &http.Server{
 		Addr: "127.0.0.1:3000",

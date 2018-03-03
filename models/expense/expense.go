@@ -24,6 +24,11 @@ func FindById(id string) (Expense, error) {
 	return expDoc, err
 }
 
+func RemoveById(id string) (error) {
+	err := DB.C(EXPENSE_COLLECTION).RemoveId(bson.ObjectIdHex(id))
+	return err
+}
+
 func Save(expDoc Expense) (Expense, error) {
 	expDoc.Id = bson.NewObjectId()
 	err := DB.C(EXPENSE_COLLECTION).Insert(expDoc)
