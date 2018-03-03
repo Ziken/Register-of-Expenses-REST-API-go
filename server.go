@@ -5,7 +5,37 @@ import (
 	"log"
 
 	"github.com/gorilla/mux"
+
+
+	"encoding/json"
 )
+
+type ResponseJSON struct {
+	Result interface{} `json:"result"`
+}
+
+func checkErr(err error, status int, w http.ResponseWriter) bool {
+	if err != nil {
+		w.WriteHeader(status)
+		sendJSON(nil, w)
+		return true
+	}
+
+	return false
+}
+
+func sendJSON(data interface{}, w http.ResponseWriter) {
+	w.Header().Set("Content-Type","application/json")
+
+	if data == nil {
+		w.Write(nil)
+		return ;
+	}
+	structJSON := ResponseJSON{data}
+	if err := json.NewEncoder(w).Encode(structJSON); err != nil {
+		checkErr(err, http.StatusBadRequest, w)
+	}
+}
 
 func main() {
 	r := mux.NewRouter()
