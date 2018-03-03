@@ -17,3 +17,9 @@ func FindAll() ([]Expense, error) {
 	err := DB.C(EXPENSE_COLLECTION).Find(bson.M{}).All(&expenses)
 	return expenses, err
 }
+
+func Save(expDoc Expense) (Expense, error) {
+	expDoc.Id = bson.NewObjectId()
+	err := DB.C(EXPENSE_COLLECTION).Insert(expDoc)
+	return expDoc, err
+}

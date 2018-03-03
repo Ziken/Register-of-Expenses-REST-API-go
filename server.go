@@ -52,6 +52,24 @@ func main() {
 		sendJSON(expenses, w)
 	})
 
+	r.HandleFunc("/expenses", nil).Methods("POST").HandlerFunc(func(w http.ResponseWriter, r * http.Request) {
+		var expDoc expense.Expense
+
+		err := json.NewDecoder(r.Body).Decode(&expDoc)
+		if  checkErr(err, http.StatusBadRequest, w) {
+			return
+		}
+		err = validate.Struct(expDoc)
+		if  checkErr(err, http.StatusBadRequest, w) {
+			return
+		}
+		insertedDoc, err := expense.Save(expDoc)
+		if  checkErr(err, http.StatusBadRequest, w) {
+			return
+		}
+
+		sendJSON(insertedDoc, w)
+	})
 
 
 	server := &http.Server{
