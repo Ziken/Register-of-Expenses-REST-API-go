@@ -11,3 +11,9 @@ type Expense struct {
 	Amount  float32 `bson:"amount,omitempty" json:"amount" validate:"required,gt=0.01"`
 	SpentAt int     `bson:"spentAt,omitempty" json:"spentAt" validate:"required"`
 }
+
+func FindAll() ([]Expense, error) {
+	var expenses []Expense
+	err := DB.C(EXPENSE_COLLECTION).Find(bson.M{}).All(&expenses)
+	return expenses, err
+}
