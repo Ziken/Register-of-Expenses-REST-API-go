@@ -3,13 +3,15 @@ import (
 	"net/http"
 	"time"
 	"log"
+	"errors"
+	"encoding/json"
 
 	"github.com/gorilla/mux"
-
-
-	"encoding/json"
-	"github.com/ziken/Register-of-Expenses-REST-API-go/models/expense"
 	"gopkg.in/go-playground/validator.v9"
+	"gopkg.in/mgo.v2/bson"
+
+	"github.com/ziken/Register-of-Expenses-REST-API-go/models/expense"
+	"gopkg.in/mgo.v2"
 )
 
 var validate * validator.Validate
@@ -69,6 +71,25 @@ func main() {
 		}
 
 		sendJSON(insertedDoc, w)
+	})
+
+	r.HandleFunc("/expenses/{id}", nil).Methods("GET").HandlerFunc(func(w http.ResponseWriter, r * http.Request) {
+		idExp := mux.Vars(r)["id"]
+		if !bson.IsObjectIdHex(idExp) {
+			checkErr(errors.New("invalid id"), http.StatusBadRequest, w)
+			return
+		}
+		expDoc, err := expense.FindById(idExp)
+
+		if err == mgo.ErrNotFound {
+			checkErr(errors.New("not found"), http.StatusNotFound, w)
+			return
+		}
+		if checkErr(err, http.StatusBadRequest, w) {
+			return
+		}
+
+		sendJSON(expDoc, w)
 	})
 
 

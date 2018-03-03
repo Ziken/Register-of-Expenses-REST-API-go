@@ -18,6 +18,12 @@ func FindAll() ([]Expense, error) {
 	return expenses, err
 }
 
+func FindById(id string) (Expense, error) {
+	var expDoc Expense
+	err := DB.C(EXPENSE_COLLECTION).FindId(bson.ObjectIdHex(id)).One(&expDoc)
+	return expDoc, err
+}
+
 func Save(expDoc Expense) (Expense, error) {
 	expDoc.Id = bson.NewObjectId()
 	err := DB.C(EXPENSE_COLLECTION).Insert(expDoc)
