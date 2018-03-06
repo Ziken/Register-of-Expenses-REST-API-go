@@ -7,14 +7,11 @@ import (
 	"encoding/json"
 
 	"github.com/gorilla/mux"
-	"gopkg.in/go-playground/validator.v9"
 	"gopkg.in/mgo.v2/bson"
+	"gopkg.in/mgo.v2"
 
 	"github.com/ziken/Register-of-Expenses-REST-API-go/models/expense"
-	"gopkg.in/mgo.v2"
 )
-
-var validate * validator.Validate
 
 type ResponseJSON struct {
 	Result interface{} `json:"result"`
@@ -45,7 +42,6 @@ func sendJSON(data interface{}, w http.ResponseWriter) {
 
 func main() {
 	r := mux.NewRouter()
-	validate = validator.New();
 	r.HandleFunc("/expenses", nil).Methods("GET").HandlerFunc(func(w http.ResponseWriter, r * http.Request) {
 		expenses, err := expense.FindAll()
 		if checkErr(err, http.StatusBadRequest, w) {
@@ -61,10 +57,11 @@ func main() {
 		if  checkErr(err, http.StatusBadRequest, w) {
 			return
 		}
-		err = validate.Struct(expDoc)
-		if  checkErr(err, http.StatusBadRequest, w) {
+
+		if  err := expDoc.Validate(); checkErr(err, http.StatusBadRequest, w) {
 			return
 		}
+
 		insertedDoc, err := expense.Save(expDoc)
 		if  checkErr(err, http.StatusBadRequest, w) {
 			return
@@ -90,6 +87,26 @@ func main() {
 		}
 
 		sendJSON(expDoc, w)
+	})
+
+	r.HandleFunc("/expenses/{id}", nil).Methods("PATCH").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		idExp := mux.Vars(r)["id"]
+		if !bson.IsObjectIdHex(idExp) {
+			checkErr(errors.New("invalid id"), http.StatusBadRequest, w)
+			return
+		}
+
+		var expDoc expense.Expense
+		if  err := json.NewDecoder(r.Body).Decode(&expDoc); checkErr(err, http.StatusBadRequest, w) {
+			return
+		}
+		if err := expDoc.ValidatePartial(); checkErr(err, http.StatusBadRequest, w) {
+			return
+		}
+		if err := expense.UpdateById(idExp, expDoc); checkErr(err, http.StatusBadRequest, w) {
+			return
+		}
+		sendJSON(nil, w)
 	})
 
 	r.HandleFunc("/expenses/{id}", nil).Methods("DELETE").HandlerFunc(func(w http.ResponseWriter, r * http.Request) {
