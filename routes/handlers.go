@@ -10,6 +10,7 @@ import (
 	"gopkg.in/mgo.v2"
 
 	"github.com/ziken/Register-of-Expenses-REST-API-go/models/expense"
+	"github.com/ziken/Register-of-Expenses-REST-API-go/models/user"
 
 )
 type ResponseJSON struct {
@@ -125,3 +126,31 @@ func DeleteExpenseById(w http.ResponseWriter, r * http.Request) {
 	sendJSON(nil, w)
 }
 
+func PostUser(w http.ResponseWriter, r * http.Request) {
+	var userDoc user.User
+
+	err := json.NewDecoder(r.Body).Decode(&userDoc)
+
+	if  checkErr(err, http.StatusBadRequest, w) {
+		return
+	}
+	if err := userDoc.Validate(); checkErr(err, http.StatusBadRequest, w) {
+		return
+	}
+
+	insertedDoc, err := user.Save(userDoc);
+	if  checkErr(err, http.StatusBadRequest, w) {
+		//log.Println(err)
+		return
+	}
+	token, err := insertedDoc.GenerateAuthToken()
+
+	if  checkErr(err, http.StatusBadRequest, w) {
+		//log.Println(err)
+		return
+	}
+	//log.Println("TOKEN", token)
+
+	w.Header().Set("x-auth", token)
+	sendJSON(insertedDoc, w);
+}

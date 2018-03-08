@@ -47,6 +47,13 @@ var routes = Routes{
 		Authenticate: false,
 		HandlerFunc: DeleteExpenseById,
 	},
+	// USERS
+	Route{
+		Path: "/users",
+		Method: "POST",
+		Authenticate: false,
+		HandlerFunc: PostUser,
+	},
 
 }
 

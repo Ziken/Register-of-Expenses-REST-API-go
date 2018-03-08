@@ -39,7 +39,6 @@ func (usr *  User) GenerateAuthToken() (string, error) {
 		return "", err
 	}
 
-
 	err = DB.C(USER_COLLECTION).UpdateId(usr.Id, bson.M{
 		"$push": bson.M{
 			"tokens": Token{Token:tokenString, Access:"auth"},
