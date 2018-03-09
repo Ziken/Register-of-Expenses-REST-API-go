@@ -14,6 +14,7 @@ type Expense struct {
 	Title   string  `bson:"title,omitempty" json:"title" validate:"required,gt=2"`
 	Amount  float32 `bson:"amount,omitempty" json:"amount" validate:"required,gt=0.01"`
 	SpentAt int     `bson:"spentAt,omitempty" json:"spentAt" validate:"required"`
+	Creator bson.ObjectId `bson:"_creator" json:"_creator"`
 }
 
 var validate * validator.Validate
@@ -40,20 +41,28 @@ func (ex *Expense) ValidatePartial() error {
 }
 //--------------------------//
 
-func FindAll() ([]Expense, error) {
+func FindAll(creator bson.ObjectId) ([]Expense, error) {
 	var expenses []Expense
-	err := DB.C(EXPENSE_COLLECTION).Find(bson.M{}).All(&expenses)
+	err := DB.C(EXPENSE_COLLECTION).Find(bson.M{
+		"_creator": creator,
+	}).All(&expenses)
 	return expenses, err
 }
 
-func FindById(id string) (Expense, error) {
+func FindById(id string, creator bson.ObjectId) (Expense, error) {
 	var expDoc Expense
-	err := DB.C(EXPENSE_COLLECTION).FindId(bson.ObjectIdHex(id)).One(&expDoc)
+	err := DB.C(EXPENSE_COLLECTION).Find(bson.M{
+		"_id": bson.ObjectIdHex(id),
+		"_creator": creator,
+	}).One(&expDoc)
 	return expDoc, err
 }
 
-func RemoveById(id string) (error) {
-	err := DB.C(EXPENSE_COLLECTION).RemoveId(bson.ObjectIdHex(id))
+func RemoveById(id string, creator bson.ObjectId) (error) {
+	err := DB.C(EXPENSE_COLLECTION).Remove(bson.M{
+		"_id": bson.ObjectIdHex(id),
+		"_creator": creator,
+	})
 	return err
 }
 
@@ -63,9 +72,13 @@ func Save(expDoc Expense) (Expense, error) {
 	return expDoc, err
 }
 
-func UpdateById(id string, expDoc Expense) error {
+func UpdateById(id string, expDoc Expense, creator bson.ObjectId) error {
 	expDoc.Id = bson.ObjectIdHex(id)
-	return DB.C(EXPENSE_COLLECTION).UpdateId(expDoc.Id, bson.M{"$set": expDoc})
+	expDoc.Creator = creator
+	return DB.C(EXPENSE_COLLECTION).Update(bson.M{
+		"_id": expDoc.Id,
+		"_creator": creator,
+	}, bson.M{"$set": expDoc})
 }
 
 func init() {

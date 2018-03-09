@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	r := routes.NewRouter()
 
 	server := &http.Server{
