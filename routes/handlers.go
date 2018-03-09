@@ -39,6 +39,15 @@ func sendJSON(data interface{}, w http.ResponseWriter) {
 	}
 }
 
+func getUserFromHeader(header http.Header) (user.User) {
+	var usr user.User
+
+	usr.Email = header.Get("x-s-user-email")
+	usr.Id = bson.ObjectIdHex(header.Get("x-s-user-id"))
+
+	return usr
+}
+
 func GetExpenses(w http.ResponseWriter, r * http.Request) {
 	expenses, err := expense.FindAll()
 	if checkErr(err, http.StatusBadRequest, w) {
@@ -155,10 +164,7 @@ func PostUser(w http.ResponseWriter, r * http.Request) {
 }
 
 func GetUserMe(w http.ResponseWriter, r * http.Request) {
-	var usr user.User
-
-	usr.Email = r.Header.Get("x-s-user-email")
-	usr.Id = bson.ObjectIdHex(r.Header.Get("x-s-user-id"))
+	usr := getUserFromHeader(r.Header)
 
 	sendJSON(usr, w)
 }
@@ -180,4 +186,14 @@ func PostUserLogin (w http.ResponseWriter, r * http.Request) {
 
 	w.Header().Set("x-auth", tokenString)
 	sendJSON(userDoc, w)
+}
+
+func GetUserLogout(w http.ResponseWriter, r * http.Request) {
+	token := r.Header.Get("x-auth")
+	usr := getUserFromHeader(r.Header)
+
+	if err := usr.RemoveAuthToken(token); checkErr(err, http.StatusBadRequest, w) {
+		return
+	}
+	sendJSON(nil, w)
 }

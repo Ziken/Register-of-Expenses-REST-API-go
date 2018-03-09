@@ -46,6 +46,15 @@ func (usr *  User) GenerateAuthToken() (string, error) {
 
 	return tokenString, err
 }
+func (usr *  User) RemoveAuthToken(token string) (error) {
+	return DB.C(USER_COLLECTION).UpdateId(usr.Id, bson.M{
+		"$pull": bson.M{
+			"tokens": bson.M{
+				"token": token,
+			},
+		},
+	})
+}
 
 func Save(userDoc User) (User, error) {
 	userDoc.Id = bson.NewObjectId()

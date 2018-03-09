@@ -67,6 +67,12 @@ var routes = Routes{
 		Authenticate: false,
 		HandlerFunc: PostUserLogin,
 	},
+	Route{
+		Path: "/users/logout",
+		Method: "POST",
+		Authenticate: true,
+		HandlerFunc: GetUserLogout,
+	},
 }
 
 func NewRouter() (* mux.Router) {
