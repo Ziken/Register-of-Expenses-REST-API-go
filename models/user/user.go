@@ -6,7 +6,6 @@ import (
 	. "github.com/ziken/Register-of-Expenses-REST-API-go/db"
 
 	"gopkg.in/go-playground/validator.v9"
-
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -55,7 +54,23 @@ func Save(userDoc User) (User, error) {
 
 	return userDoc, err;
 }
+func FindByToken(token string) (User,  error) {
+	var usr User
+	err := DB.C(USER_COLLECTION).Find(bson.M{
+		"tokens.token": token,
+	}).One(&usr)
 
+	return usr, err
+}
+func FindByCredentials(email, password string) (User, error) {
+	var usr User
+	err := DB.C(USER_COLLECTION).Find(bson.M{
+		"email": email,
+		"password": password,
+	}).One(&usr)
+
+	return usr, err;
+}
 func init() {
 	validate = validator.New()
 }

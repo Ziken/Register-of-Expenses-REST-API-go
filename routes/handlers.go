@@ -162,3 +162,22 @@ func GetUserMe(w http.ResponseWriter, r * http.Request) {
 
 	sendJSON(usr, w)
 }
+
+func PostUserLogin (w http.ResponseWriter, r * http.Request) {
+	var userDoc user.User
+	err := json.NewDecoder(r.Body).Decode(&userDoc)
+	if  checkErr(err, http.StatusBadRequest, w) {
+		return
+	}
+	userDoc, err = user.FindByCredentials(userDoc.Email, userDoc.Password)
+	if  checkErr(err, http.StatusBadRequest, w) {
+		return
+	}
+	tokenString, err := userDoc.GenerateAuthToken()
+	if  checkErr(err, http.StatusBadRequest, w) {
+		return
+	}
+
+	w.Header().Set("x-auth", tokenString)
+	sendJSON(userDoc, w)
+}
