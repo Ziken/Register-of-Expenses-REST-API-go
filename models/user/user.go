@@ -8,6 +8,7 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 type User struct {
@@ -32,6 +33,7 @@ func (usr *  User) GenerateAuthToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"_id": usr.Id,
 		"access": "auth",
+		"time": time.Now().String(),
 	})
 
 	tokenString, err := token.SignedString([]byte("good-secret"))
