@@ -68,7 +68,7 @@ func Save(userDoc User) (User, error) {
 	userDoc.Password = string(hashedPass)
 
 	err = DB.C(USER_COLLECTION).Insert(userDoc)
-	return userDoc, err;
+	return userResponse(userDoc), err;
 }
 func FindByToken(token string) (User,  error) {
 	var usr User
@@ -76,7 +76,7 @@ func FindByToken(token string) (User,  error) {
 		"tokens.token": token,
 	}).One(&usr)
 
-	return usr, err
+	return userResponse(usr), err
 }
 func FindByCredentials(email, password string) (User, error) {
 	var usr User
@@ -88,7 +88,12 @@ func FindByCredentials(email, password string) (User, error) {
 		return usr, err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(usr.Password), []byte(password))
-	return usr, err
+	return userResponse(usr), err
+}
+
+func userResponse(usr User) (User) {
+	usr.Password = ""
+	return usr
 }
 func init() {
 	validate = validator.New()
