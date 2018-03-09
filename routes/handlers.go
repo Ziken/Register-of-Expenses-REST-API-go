@@ -11,7 +11,6 @@ import (
 
 	"github.com/ziken/Register-of-Expenses-REST-API-go/models/expense"
 	"github.com/ziken/Register-of-Expenses-REST-API-go/models/user"
-
 )
 type ResponseJSON struct {
 	Result interface{} `json:"result"`
@@ -153,4 +152,13 @@ func PostUser(w http.ResponseWriter, r * http.Request) {
 
 	w.Header().Set("x-auth", token)
 	sendJSON(insertedDoc, w);
+}
+
+func GetUserMe(w http.ResponseWriter, r * http.Request) {
+	var usr user.User
+
+	usr.Email = r.Header.Get("x-s-user-email")
+	usr.Id = bson.ObjectIdHex(r.Header.Get("x-s-user-id"))
+
+	sendJSON(usr, w)
 }

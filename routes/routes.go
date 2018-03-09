@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 	"github.com/gorilla/mux"
+	"github.com/ziken/Register-of-Expenses-REST-API-go/middleware/authenticate"
 )
 
 type Route struct {
@@ -54,12 +55,19 @@ var routes = Routes{
 		Authenticate: false,
 		HandlerFunc: PostUser,
 	},
-
+	Route{
+		Path: "/users/me",
+		Method: "GET",
+		Authenticate: true,
+		HandlerFunc: GetUserMe,
+	},
 }
 
 func NewRouter() (* mux.Router) {
 	mainRouter := mux.NewRouter()
 	authRouter := mux.NewRouter()
+
+	authRouter.Use(authenticate.Authenticate)
 
 	for _, route := range routes {
 		if route.Authenticate {
