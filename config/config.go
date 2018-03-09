@@ -15,9 +15,11 @@ func init () {
 	if err != nil {
 		panic(err)
 	}
-
-	if env == "" || env == "development" {
-		c := config.GetStringMapString("development")
+	if env == "" {
+		env = "development"
+	}
+	if env == "development" || env == "test" {
+		c := config.GetStringMapString(env)
 		for key, value := range c {
 			os.Setenv(strings.ToUpper(key), value)
 		}
