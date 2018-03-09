@@ -47,9 +47,10 @@ func getUserFromHeader(header http.Header) (user.User) {
 
 	return usr
 }
-
+/*---------------------------------------------------------------*/
 func GetExpenses(w http.ResponseWriter, r * http.Request) {
-	expenses, err := expense.FindAll()
+	usr := getUserFromHeader(r.Header)
+	expenses, err := expense.FindAll(usr.Id)
 	if checkErr(err, http.StatusBadRequest, w) {
 		return
 	}
@@ -59,6 +60,7 @@ func GetExpenses(w http.ResponseWriter, r * http.Request) {
 //r.HandleFunc("/expenses", nil).Methods("POST").HandlerFunc(func(w http.ResponseWriter, r * http.Request) {
 func PostExpense(w http.ResponseWriter, r * http.Request) {
 	var expDoc expense.Expense
+	usr := getUserFromHeader(r.Header)
 
 	err := json.NewDecoder(r.Body).Decode(&expDoc)
 	if  checkErr(err, http.StatusBadRequest, w) {
@@ -68,7 +70,7 @@ func PostExpense(w http.ResponseWriter, r * http.Request) {
 	if  err := expDoc.Validate(); checkErr(err, http.StatusBadRequest, w) {
 		return
 	}
-
+	expDoc.Creator = usr.Id
 	insertedDoc, err := expense.Save(expDoc)
 	if  checkErr(err, http.StatusBadRequest, w) {
 		return
@@ -78,12 +80,13 @@ func PostExpense(w http.ResponseWriter, r * http.Request) {
 }
 
 func GetExpenseById (w http.ResponseWriter, r * http.Request) {
+	usr := getUserFromHeader(r.Header)
 	idExp := mux.Vars(r)["id"]
 	if !bson.IsObjectIdHex(idExp) {
 		checkErr(errors.New("invalid id"), http.StatusBadRequest, w)
 		return
 	}
-	expDoc, err := expense.FindById(idExp)
+	expDoc, err := expense.FindById(idExp, usr.Id)
 
 	if err == mgo.ErrNotFound {
 		checkErr(errors.New("not found"), http.StatusNotFound, w)
@@ -97,6 +100,7 @@ func GetExpenseById (w http.ResponseWriter, r * http.Request) {
 }
 
 func PatchExpenseById(w http.ResponseWriter, r *http.Request) {
+	usr := getUserFromHeader(r.Header)
 	idExp := mux.Vars(r)["id"]
 	if !bson.IsObjectIdHex(idExp) {
 		checkErr(errors.New("invalid id"), http.StatusBadRequest, w)
@@ -110,20 +114,21 @@ func PatchExpenseById(w http.ResponseWriter, r *http.Request) {
 	if err := expDoc.ValidatePartial(); checkErr(err, http.StatusBadRequest, w) {
 		return
 	}
-	if err := expense.UpdateById(idExp, expDoc); checkErr(err, http.StatusBadRequest, w) {
+	if err := expense.UpdateById(idExp, expDoc, usr.Id); checkErr(err, http.StatusBadRequest, w) {
 		return
 	}
 	sendJSON(nil, w)
 }
 
 func DeleteExpenseById(w http.ResponseWriter, r * http.Request) {
+	usr := getUserFromHeader(r.Header)
 	idExp := mux.Vars(r)["id"]
 	if !bson.IsObjectIdHex(idExp) {
 		checkErr(errors.New("invalid id"), http.StatusBadRequest, w)
 		return
 	}
 
-	err := expense.RemoveById(idExp);
+	err := expense.RemoveById(idExp, usr.Id);
 	if err == mgo.ErrNotFound {
 		checkErr(errors.New("not found"), http.StatusNotFound, w)
 		return

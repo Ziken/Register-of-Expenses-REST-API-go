@@ -20,32 +20,32 @@ var routes = Routes{
 	Route{
 		Path: "/expenses",
 		Method: "GET",
-		Authenticate: false,
+		Authenticate: true,
 		HandlerFunc: GetExpenses,
 	},
 	Route{
 		Path: "/expenses",
 		Method: "POST",
-		Authenticate: false,
+		Authenticate: true,
 		HandlerFunc: PostExpense,
 	},
 	Route{
 		Path: "/expenses/{id}",
 		Method: "GET",
-		Authenticate: false,
+		Authenticate: true,
 		HandlerFunc: GetExpenseById,
 	},
 	Route{
 		Path: "/expenses/{id}",
 		Method: "PATCH",
-		Authenticate: false,
+		Authenticate: true,
 		HandlerFunc: PatchExpenseById,
 	},
 
 	Route{
 		Path: "/expenses/{id}",
 		Method: "DELETE",
-		Authenticate: false,
+		Authenticate: true,
 		HandlerFunc: DeleteExpenseById,
 	},
 	// USERS
@@ -84,7 +84,7 @@ func NewRouter() (* mux.Router) {
 	for _, route := range routes {
 		if route.Authenticate {
 			authRouter.HandleFunc(route.Path, route.HandlerFunc).Methods(route.Method)
-			mainRouter.Handle(route.Path, authRouter)
+			mainRouter.Handle(route.Path, authRouter).Methods(route.Method)
 		} else {
 			mainRouter.HandleFunc(route.Path, route.HandlerFunc).Methods(route.Method)
 		}
