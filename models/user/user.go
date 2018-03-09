@@ -7,6 +7,7 @@ import (
 
 	"gopkg.in/go-playground/validator.v9"
 	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -58,9 +59,13 @@ func (usr *  User) RemoveAuthToken(token string) (error) {
 
 func Save(userDoc User) (User, error) {
 	userDoc.Id = bson.NewObjectId()
+	hashedPass, err := bcrypt.GenerateFromPassword([]byte(userDoc.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return userDoc, err
+	}
+	userDoc.Password = string(hashedPass)
 
-	err := DB.C(USER_COLLECTION).Insert(userDoc)
-
+	err = DB.C(USER_COLLECTION).Insert(userDoc)
 	return userDoc, err;
 }
 func FindByToken(token string) (User,  error) {
@@ -75,10 +80,13 @@ func FindByCredentials(email, password string) (User, error) {
 	var usr User
 	err := DB.C(USER_COLLECTION).Find(bson.M{
 		"email": email,
-		"password": password,
 	}).One(&usr)
 
-	return usr, err;
+	if err != nil {
+		return usr, err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(usr.Password), []byte(password))
+	return usr, err
 }
 func init() {
 	validate = validator.New()
