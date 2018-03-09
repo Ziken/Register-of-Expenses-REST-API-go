@@ -9,6 +9,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"time"
+	"os"
 )
 
 type User struct {
@@ -36,7 +37,7 @@ func (usr *  User) GenerateAuthToken() (string, error) {
 		"time": time.Now().String(),
 	})
 
-	tokenString, err := token.SignedString([]byte("good-secret"))
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SER")))
 	if err != nil {
 		return "", err
 	}

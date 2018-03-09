@@ -3,6 +3,7 @@ package db
 import (
 	"gopkg.in/mgo.v2"
 	"log"
+	"os"
 )
 
 type DbHandler struct {
@@ -24,7 +25,9 @@ func (e *DbHandler) Connect() {
 
 func init () { // TODO load config
 	var dbHandler DbHandler
-	dbHandler.Server = "127.0.0.1"
-	dbHandler.Database = "ExpensesRegister"
+	dbHandler.Server = os.Getenv("MONGOHQ_SERVER")
+	dbHandler.Database = os.Getenv("MONGOHQ_DATABASE")
+	//dbHandler.Server = "127.0.0.1"
+	//dbHandler.Database = "ExpensesRegister"
 	dbHandler.Connect()
 }
